@@ -22,19 +22,20 @@ class SSA:
         noise = -np.log(rand(2))
         return noise * aInv
 
-    def compute_step(self, x, tIn, tOut):
+    def compute_step(self, mRNA_in, tIn, tOut):
         # take the state x at time tIn and return the state at time tOut
         t = tIn
 
+        curr_mRNA = mRNA_in
         while t < tOut:
-            rt = self.reaction_times(x)
+            rt = self.reaction_times(curr_mRNA)
             idx = np.argmin(rt)
             tau = np.min(rt)
             # tau = rt[idx]
 
-            x += self.stoichiometry[idx]
+            curr_mRNA += self.stoichiometry[idx]
             t += tau
-        return x
+        return curr_mRNA
 
     def run_simulation(
         self, timesteps: int, initial_mRNA_level=0.0, start_time=0.0, timestep_sec=0.5
@@ -42,11 +43,11 @@ class SSA:
         mrna = [initial_mRNA_level]
         time = [start_time]
         t = start_time
-        x = initial_mRNA_level
+        curr_mRNA = initial_mRNA_level
         for i in range(timesteps):
-            x = self.compute_step(x, t, t + timestep_sec)
+            curr_mRNA = self.compute_step(curr_mRNA, t, t + timestep_sec)
             t += timestep_sec
-            mrna.append(x)
+            mrna.append(curr_mRNA)
             time.append(t)
 
         return (time, mrna)
